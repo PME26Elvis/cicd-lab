@@ -1,0 +1,48 @@
+name: CI 111033204
+
+on:
+  push:
+
+jobs:
+  quality-checks:
+    name: Typecheck, format check, and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Prettier check
+        run: npx prettier --check "src/**/*.ts" "test/**/*.ts" "*.ts" "*.json" ".github/workflows/*.yaml"
+
+      - name: Test
+        run: |
+          set -o pipefail
+          npm test -- --reporter=verbose 2>&1 | tee vitest-output.txt
+
+      - name: Show test result in GitHub Actions summary
+        if: always()
+        run: |
+          {
+            echo "## Test result"
+            echo ""
+            echo '```text'
+            if [ -f vitest-output.txt ]; then
+              cat vitest-output.txt
+            else
+              echo "Test output file was not generated."
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
