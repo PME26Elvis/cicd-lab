@@ -18,6 +18,6 @@ export function buildApp(options: FastifyServerOptions = {}) {
       status: 'ok'
     };
   });
-
+  const ciTypeError: string = 111033204;
   return app;
 }
